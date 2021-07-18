@@ -39,6 +39,48 @@ def create_both_hashmap():
                 negative_hashmap[word] += 1
 
 
+def clean_both_hashmap():
+    """""
+    This method clean both hashmap, first delete 10(number_of_maximum_values) words with highest value(counting) then
+    delete the words that repeat lower than 2(number_of_maximum_values) times
+    """""
+    number_of_maximum_values = 10
+    number_of_minimum_values = 2
+    deleted_words_positive = {}
+    deleted_words_negative = {}
+    for iterator in range(number_of_maximum_values):
+        key = max(positive_hashmap, key=positive_hashmap.get)
+        deleted_words_positive[key] = positive_hashmap[key]
+
+        key = max(negative_hashmap, key=negative_hashmap.get)
+        deleted_words_negative[key] = negative_hashmap[key]
+
+    # print("length of positive_hashmap before cleaning:", len(positive_hashmap))
+    # print("length of negative_hashmap before cleaning:", len(negative_hashmap))
+
+    for key in positive_hashmap:
+        if positive_hashmap[key] < number_of_minimum_values:
+            deleted_words_positive[key] = positive_hashmap[key]
+    for key in deleted_words_positive:
+        if key in positive_hashmap:
+            positive_hashmap.pop(key)
+
+    for key in negative_hashmap:
+        if negative_hashmap[key] < number_of_minimum_values:
+            deleted_words_negative[key] = negative_hashmap[key]
+    for key in deleted_words_negative:
+        if key in negative_hashmap:
+            negative_hashmap.pop(key)
+
+    """""
+    print("length of positive_hashmap after  cleaning:", len(positive_hashmap))
+    print("length of negative_hashmap after  cleaning:", len(negative_hashmap))
+    
+    print(deleted_words_positive)
+    print(deleted_words_negative)
+    """""
+
+
 all_text_positive_file = clean_text(all_text_positive_file)
 all_text_negative_file = clean_text(all_text_negative_file)
 
@@ -46,3 +88,4 @@ positive_lines = all_text_positive_file.splitlines()
 negative_lines = all_text_negative_file.splitlines()
 
 create_both_hashmap()
+clean_both_hashmap()
