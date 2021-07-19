@@ -126,4 +126,4 @@ all_word_from_negative = sum(negative_hashmap.values())
 for key in negative_hashmap:
     p_in_negative[key] = negative_hashmap[key] / all_word_from_negative
 
-bigram_matrix_positive = []
+
