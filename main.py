@@ -6,6 +6,8 @@ deleted_words_positive = {}
 deleted_words_negative = {}
 positive_lines_word_by_word = []
 negative_lines_word_by_word = []
+p_wi_and_next_word_in_positive = {}
+p_wi_and_next_word_in_negative = {}
 
 with open("rt-polarity.pos", "r") as file_positive:
     all_text_positive_file = file_positive.read()
@@ -99,6 +101,29 @@ def update_and_clean_lines():
             negative_lines_word_by_word.remove(i)
 
 
+def calculate_probabilities_with_lambda():
+    """""
+    lambda1 + lambda2 + lambda3 = 1
+    0 < e < 1
+    e: shows accuracy if a word not in trained dictionary. 
+    """""
+    lambda1 = 0.15
+    lambda2 = 0.7
+    lambda3 = 0.15
+    e = 0.1
+    for key in bigram_matrix_positive:
+        if (key.split()[0] in positive_hashmap) and (key.split()[0] not in deleted_words_positive) and \
+                (key.split()[1] not in deleted_words_positive):
+            p_wi_and_next_word_in_positive[key] = (lambda3 * p_wi_and_next_word_in_positive[key]) + \
+                                                  (lambda2 * p_wi_in_positive[key.split()[0]]) + (lambda1 * e)
+
+    for key in bigram_matrix_negative:
+        if (key.split()[0] in negative_hashmap) and (key.split()[0] not in deleted_words_negative) and \
+                (key.split()[1] not in deleted_words_negative):
+            p_wi_and_next_word_in_negative[key] = (lambda3 * p_wi_and_next_word_in_negative[key]) + \
+                                                  (lambda2 * p_wi_in_negative[key.split()[0]]) + (lambda1 * e)
+
+
 all_text_positive_file = clean_text(all_text_positive_file)
 all_text_negative_file = clean_text(all_text_negative_file)
 
@@ -136,15 +161,15 @@ number_of_words_negative = sum(negative_hashmap.values())
 for key in negative_hashmap:
     p_wi_in_negative[key] = negative_hashmap[key] / number_of_words_negative
 
-# build bigram matrices and save bigram count of each word
-bigram_matrix_positive = {}
-bigram_matrix_negative = {}
-
 positive_lines_word_by_word = str(positive_lines).split()
 negative_lines_word_by_word = str(negative_lines).split()
 
 # make it clean with stop words
-update_and_clean_lines()
+# update_and_clean_lines()
+
+# build bigram matrices and save bigram count of each word
+bigram_matrix_positive = {}
+bigram_matrix_negative = {}
 
 i = 0
 while i < len(positive_lines_word_by_word) - 1:
@@ -165,14 +190,14 @@ while i < len(negative_lines_word_by_word) - 1:
     i += 1
 
 # calculate probability of p(wi|w<i-1>)
-p_wi_and_next_word_in_positive = {}
 for key in bigram_matrix_positive:
     if (key.split()[0] in positive_hashmap) and (key.split()[0] not in deleted_words_positive) and \
             (key.split()[1] not in deleted_words_positive):
         p_wi_and_next_word_in_positive[key] = bigram_matrix_positive[key] / positive_hashmap[key.split()[0]]
-i = 0
-for key in p_wi_and_next_word_in_positive:
-    print(key, p_wi_and_next_word_in_positive[key])
-    i += 1
-    if i > 10:
-        break
+for key in bigram_matrix_negative:
+    if (key.split()[0] in negative_hashmap) and (key.split()[0] not in deleted_words_negative) and \
+            (key.split()[1] not in deleted_words_negative):
+        p_wi_and_next_word_in_negative[key] = bigram_matrix_negative[key] / negative_hashmap[key.split()[0]]
+
+# considering lambda
+calculate_probabilities_with_lambda()
