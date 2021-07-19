@@ -201,3 +201,7 @@ for key in bigram_matrix_negative:
 
 # considering lambda
 calculate_probabilities_with_lambda()
+
+input_string = input()
+while input_string != "!q":
+    input_string = input()
