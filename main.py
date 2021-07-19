@@ -8,12 +8,12 @@ positive_lines_word_by_word = []
 negative_lines_word_by_word = []
 p_wi_and_next_word_in_positive = {}
 p_wi_and_next_word_in_negative = {}
-lambda1 = 0.15
-lambda2 = 0.7
+lambda1 = 0.7
+lambda2 = 0.15
 lambda3 = 0.15
 e = 0.1
 
-with open("rt-polarity.pos", "r") as file_positive:
+with open("rt-polarity.pos") as file_positive:
     all_text_positive_file = file_positive.read()
 with open("rt-polarity.neg", "r") as file_negative:
     all_text_negative_file = file_negative.read()
@@ -229,30 +229,17 @@ while input_string != "!q":
             list_input.remove(i)
 
     print(list_input)
-    i = 1
-    for k in p_wi_and_next_word_in_positive:
-        print(k)
-        if k == "new conan ":
-            print("sag")
-        i += 1
-        if i > 10:
-            break
-    if "new conan" in p_wi_and_next_word_in_positive:
-        print("hast")
 
-    else:
-        print("nist")
-    exit()
     p_multiplication_positive = p_wi_in_positive[list_input[0]]
     i = 1
     while i < len(list_input):
         two_word = str(list_input[i - 1] + " " + list_input[i])
-        print(two_word)
         if two_word in p_wi_and_next_word_in_positive:
-            print(p_multiplication_positive)
+            print("sa")
             p_multiplication_positive *= p_wi_and_next_word_in_positive[two_word]
         else:
             p_multiplication_positive *= (lambda2 * p_wi_in_positive[list_input[i]]) + (lambda3 * e)
+        print(two_word, p_multiplication_positive)
         i += 1
 
     i = 1
@@ -263,8 +250,9 @@ while input_string != "!q":
             p_multiplication_negative *= p_wi_and_next_word_in_negative[two_word]
         else:
             p_multiplication_negative *= (lambda2 * p_wi_in_negative[list_input[i]]) + (lambda3 * e)
-        i += 1
 
+        i += 1
+    print("|||")
     print(p_multiplication_positive)
     print(p_multiplication_negative)
     input_string = input()
