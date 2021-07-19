@@ -48,12 +48,15 @@ def clean_both_hashmap():
     number_of_minimum_values = 2
     deleted_words_positive = {}
     deleted_words_negative = {}
+
+    # save begin and end of file
+
     for iterator in range(number_of_maximum_values):
         key = max(positive_hashmap, key=positive_hashmap.get)
-        deleted_words_positive[key] = positive_hashmap[key]
+        deleted_words_positive[key] = positive_hashmap.pop(key)
 
         key = max(negative_hashmap, key=negative_hashmap.get)
-        deleted_words_negative[key] = negative_hashmap[key]
+        deleted_words_negative[key] = negative_hashmap.pop(key)
 
     # print("length of positive_hashmap before cleaning:", len(positive_hashmap))
     # print("length of negative_hashmap before cleaning:", len(negative_hashmap))
@@ -79,6 +82,8 @@ def clean_both_hashmap():
     print(deleted_words_positive)
     print(deleted_words_negative)
     """""
+    # print(deleted_words_positive)
+    print(deleted_words_negative)
 
 
 all_text_positive_file = clean_text(all_text_positive_file)
@@ -87,5 +92,38 @@ all_text_negative_file = clean_text(all_text_negative_file)
 positive_lines = all_text_positive_file.splitlines()
 negative_lines = all_text_negative_file.splitlines()
 
+# print(positive_lines)
+
+
 create_both_hashmap()
 clean_both_hashmap()
+
+# add <$> at the first of line and </$> at the end of line
+i = 0
+while i < len(positive_lines):
+    positive_lines[i] = "<$> " + positive_lines[i] + " </$>"
+    i += 1
+# add to hashmaps
+positive_hashmap["<$>"] = i
+positive_hashmap["</$>"] = i
+
+
+i = 0
+while i < len(negative_lines):
+    negative_lines[i] = "<$> " + negative_lines[i] + " </$>"
+    i += 1
+# add to hashmaps
+negative_hashmap["<$>"] = i
+negative_hashmap["</$>"] = i
+
+p_in_positive = {}
+all_word_from_positive = sum(positive_hashmap.values())
+for key in positive_hashmap:
+    p_in_positive[key] = positive_hashmap[key] / all_word_from_positive
+
+p_in_negative = {}
+all_word_from_negative = sum(negative_hashmap.values())
+for key in negative_hashmap:
+    p_in_negative[key] = negative_hashmap[key] / all_word_from_negative
+
+bigram_matrix_positive = []
