@@ -4,6 +4,8 @@ positive_lines = []
 negative_lines = []
 deleted_words_positive = {}
 deleted_words_negative = {}
+positive_lines_word_by_word = []
+negative_lines_word_by_word = []
 
 with open("rt-polarity.pos", "r") as file_positive:
     all_text_positive_file = file_positive.read()
@@ -20,6 +22,7 @@ def clean_text(text: str):
     text = text.replace(':', '')
     text = text.replace('[', '')
     text = text.replace(']', '')
+    text = text.replace('"', '')
     text = text.replace('-', " ")
     text = text.replace("  ", " ")
     return text
@@ -85,7 +88,15 @@ def clean_both_hashmap():
 
 
 def update_and_clean_lines():
-    pass
+    for i in deleted_words_positive:
+        count = positive_lines_word_by_word.count(i)
+        for j in range(count):
+            positive_lines_word_by_word.remove(i)
+
+    for i in deleted_words_negative:
+        count = negative_lines_word_by_word.count(i)
+        for j in range(count):
+            negative_lines_word_by_word.remove(i)
 
 
 all_text_positive_file = clean_text(all_text_positive_file)
@@ -96,7 +107,6 @@ negative_lines = all_text_negative_file.splitlines()
 
 create_both_hashmap()
 clean_both_hashmap()
-update_and_clean_lines()
 
 # add <$> at the first of line and </$> at the end of line
 i = 0
@@ -130,8 +140,13 @@ for key in negative_hashmap:
 bigram_matrix_positive = {}
 bigram_matrix_negative = {}
 
-i = 0
 positive_lines_word_by_word = str(positive_lines).split()
+negative_lines_word_by_word = str(negative_lines).split()
+
+# make it clean with stop words
+update_and_clean_lines()
+
+i = 0
 while i < len(positive_lines_word_by_word) - 1:
     key = str(positive_lines_word_by_word[i] + " " + positive_lines_word_by_word[i + 1] + " ")
     if key not in bigram_matrix_positive:
@@ -141,7 +156,6 @@ while i < len(positive_lines_word_by_word) - 1:
     i += 1
 
 i = 0
-negative_lines_word_by_word = str(negative_lines).split()
 while i < len(negative_lines_word_by_word) - 1:
     key = str(negative_lines_word_by_word[i] + " " + negative_lines_word_by_word[i + 1] + " ")
     if key not in bigram_matrix_negative:
@@ -150,6 +164,15 @@ while i < len(negative_lines_word_by_word) - 1:
         bigram_matrix_negative[key] += 1
     i += 1
 
+# calculate probability of p(wi|w<i-1>)
 p_wi_and_next_word_in_positive = {}
 for key in bigram_matrix_positive:
-    p_wi_and_next_word_in_positive[key] = bigram_matrix_positive[key] / positive_hashmap[key.split()[0]]
+    if (key.split()[0] in positive_hashmap) and (key.split()[0] not in deleted_words_positive) and \
+            (key.split()[1] not in deleted_words_positive):
+        p_wi_and_next_word_in_positive[key] = bigram_matrix_positive[key] / positive_hashmap[key.split()[0]]
+i = 0
+for key in p_wi_and_next_word_in_positive:
+    print(key, p_wi_and_next_word_in_positive[key])
+    i += 1
+    if i > 10:
+        break
