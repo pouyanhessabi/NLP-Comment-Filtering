@@ -201,4 +201,4 @@ for key in bigram_matrix_negative:
 
 # considering lambda
 calculate_probabilities_with_lambda()
-print("changing lambda and affect codes.")
+print("clean code and add comments.")
