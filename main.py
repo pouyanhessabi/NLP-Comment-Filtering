@@ -2,6 +2,8 @@ positive_hashmap = {}
 negative_hashmap = {}
 positive_lines = []
 negative_lines = []
+deleted_words_positive = {}
+deleted_words_negative = {}
 
 with open("rt-polarity.pos", "r") as file_positive:
     all_text_positive_file = file_positive.read()
@@ -46,8 +48,6 @@ def clean_both_hashmap():
     """""
     number_of_maximum_values = 10
     number_of_minimum_values = 2
-    deleted_words_positive = {}
-    deleted_words_negative = {}
 
     # save begin and end of file
 
@@ -82,8 +82,10 @@ def clean_both_hashmap():
     print(deleted_words_positive)
     print(deleted_words_negative)
     """""
-    # print(deleted_words_positive)
-    print(deleted_words_negative)
+
+
+def update_and_clean_lines():
+    pass
 
 
 all_text_positive_file = clean_text(all_text_positive_file)
@@ -92,38 +94,62 @@ all_text_negative_file = clean_text(all_text_negative_file)
 positive_lines = all_text_positive_file.splitlines()
 negative_lines = all_text_negative_file.splitlines()
 
-# print(positive_lines)
-
-
 create_both_hashmap()
 clean_both_hashmap()
+update_and_clean_lines()
 
 # add <$> at the first of line and </$> at the end of line
 i = 0
 while i < len(positive_lines):
     positive_lines[i] = "<$> " + positive_lines[i] + " </$>"
     i += 1
-# add to hashmaps
+# add to hashmap
 positive_hashmap["<$>"] = i
 positive_hashmap["</$>"] = i
-
 
 i = 0
 while i < len(negative_lines):
     negative_lines[i] = "<$> " + negative_lines[i] + " </$>"
     i += 1
-# add to hashmaps
+# add to hashmap
 negative_hashmap["<$>"] = i
 negative_hashmap["</$>"] = i
 
-p_in_positive = {}
-all_word_from_positive = sum(positive_hashmap.values())
+# probability of each word in language
+p_wi_in_positive = {}
+number_of_words_positive = sum(positive_hashmap.values())
 for key in positive_hashmap:
-    p_in_positive[key] = positive_hashmap[key] / all_word_from_positive
+    p_wi_in_positive[key] = positive_hashmap[key] / number_of_words_positive
 
-p_in_negative = {}
-all_word_from_negative = sum(negative_hashmap.values())
+p_wi_in_negative = {}
+number_of_words_negative = sum(negative_hashmap.values())
 for key in negative_hashmap:
-    p_in_negative[key] = negative_hashmap[key] / all_word_from_negative
+    p_wi_in_negative[key] = negative_hashmap[key] / number_of_words_negative
 
+# build bigram matrices and save bigram count of each word
+bigram_matrix_positive = {}
+bigram_matrix_negative = {}
 
+i = 0
+positive_lines_word_by_word = str(positive_lines).split()
+while i < len(positive_lines_word_by_word) - 1:
+    key = str(positive_lines_word_by_word[i] + " " + positive_lines_word_by_word[i + 1] + " ")
+    if key not in bigram_matrix_positive:
+        bigram_matrix_positive[key] = 1
+    else:
+        bigram_matrix_positive[key] += 1
+    i += 1
+
+i = 0
+negative_lines_word_by_word = str(negative_lines).split()
+while i < len(negative_lines_word_by_word) - 1:
+    key = str(negative_lines_word_by_word[i] + " " + negative_lines_word_by_word[i + 1] + " ")
+    if key not in bigram_matrix_negative:
+        bigram_matrix_negative[key] = 1
+    else:
+        bigram_matrix_negative[key] += 1
+    i += 1
+
+p_wi_and_next_word_in_positive = {}
+for key in bigram_matrix_positive:
+    p_wi_and_next_word_in_positive[key] = bigram_matrix_positive[key] / positive_hashmap[key.split()[0]]
