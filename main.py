@@ -1,13 +1,9 @@
-new_positive_lines = []
-new_negative_lines = []
-positive_hashmap = {}
-negative_hashmap = {}
 positive_lines = []
 negative_lines = []
+positive_hashmap = {}
+negative_hashmap = {}
 deleted_words_positive = {}
 deleted_words_negative = {}
-positive_lines_word_by_word = []
-negative_lines_word_by_word = []
 p_wi_and_next_word_in_positive = {}
 p_wi_and_next_word_in_negative = {}
 lambda1 = 0.7
@@ -19,17 +15,17 @@ with open("rt-polarity.pos", "r") as file_positive:
     all_text_positive_file = file_positive.readlines()[0:5000]
     i = 0
     while i < 5000:
-        new_positive_lines.append(all_text_positive_file[i].split())
-        new_positive_lines[i].insert(0, "<$>")
-        new_positive_lines[i].insert(len(new_positive_lines[i]), "</$>")
+        positive_lines.append(all_text_positive_file[i].split())
+        positive_lines[i].insert(0, "<$>")
+        positive_lines[i].insert(len(positive_lines[i]), "</$>")
         i += 1
 with open("rt-polarity.neg", "r") as file_negative:
     all_text_negative_file = file_negative.readlines()[0:5000]
     i = 0
     while i < 5000:
-        new_negative_lines.append(all_text_negative_file[i].split())
-        new_negative_lines[i].insert(0, "<$>")
-        new_negative_lines[i].insert(len(new_negative_lines[i]), "</$>")
+        negative_lines.append(all_text_negative_file[i].split())
+        negative_lines[i].insert(0, "<$>")
+        negative_lines[i].insert(len(negative_lines[i]), "</$>")
         i += 1
 
 
@@ -40,35 +36,35 @@ def get_key(val, dictionary: dict):
 
 
 def clean_lines():
-    global new_positive_lines, new_negative_lines
+    global positive_lines, negative_lines
     tmp_list = []
 
-    for i in new_positive_lines:
+    for i in positive_lines:
         for j in i:
             if j == '*' or j == '.' or j == ',' or j == '?' or j == '!' or j == ':' or j == '"' or j == '[' or j == ']':
                 pass
             else:
                 tmp_list.append(j)
-    new_positive_lines = tmp_list.copy()
+    positive_lines = tmp_list.copy()
 
     tmp_list.clear()
-    for i in new_negative_lines:
+    for i in negative_lines:
         for j in i:
             if j == '*' or j == '.' or j == ',' or j == '?' or j == '!' or j == ':' or j == '"' or j == '[' or j == ']':
                 pass
             else:
                 tmp_list.append(j)
-    new_negative_lines = tmp_list.copy()
+    negative_lines = tmp_list.copy()
 
 
 def create_both_hashmap():
-    for word in new_positive_lines:
+    for word in positive_lines:
         if word not in positive_hashmap:
             positive_hashmap[word] = 1
         else:
             positive_hashmap[word] += 1
 
-    for word in new_negative_lines:
+    for word in negative_lines:
         if word not in negative_hashmap:
             negative_hashmap[word] = 1
         else:
@@ -83,8 +79,6 @@ def clean_both_hashmap():
     number_of_maximum_values = 10
     number_of_minimum_values = 2
 
-    # save begin and end of file
-
     for iterator in range(number_of_maximum_values):
         # [-3] is for <$> and </$>
         tmp = positive_hashmap.copy()
@@ -96,9 +90,6 @@ def clean_both_hashmap():
         value = sorted(tmp.values())[-3]
         key = get_key(value, tmp)
         deleted_words_negative[key] = negative_hashmap.pop(key)
-
-    # print("length of positive_hashmap before cleaning:", len(positive_hashmap))
-    # print("length of negative_hashmap before cleaning:", len(negative_hashmap))
 
     for key in positive_hashmap:
         if positive_hashmap[key] < number_of_minimum_values:
@@ -123,29 +114,18 @@ def clean_both_hashmap():
     """""
 
 
-#
-# def update_and_clean_lines():
-#     for i in deleted_words_positive:
-#         count = positive_lines_word_by_word.count(i)
-#         for j in range(count):
-#             positive_lines_word_by_word.remove(i)
-#
-#     for i in deleted_words_negative:
-#         count = negative_lines_word_by_word.count(i)
-#         for j in range(count):
-#             negative_lines_word_by_word.remove(i)
 def clean_lines_after_hashmap():
-    global new_positive_lines, new_negative_lines
+    global positive_lines, negative_lines
     tmp = []
-    for word in new_positive_lines:
+    for word in positive_lines:
         if word in positive_hashmap:
             tmp.append(word)
-    new_positive_lines = tmp.copy()
+    positive_lines = tmp.copy()
     tmp.clear()
-    for word in new_negative_lines:
+    for word in negative_lines:
         if word in negative_hashmap:
             tmp.append(word)
-    new_negative_lines = tmp.copy()
+    negative_lines = tmp.copy()
 
 
 def calculate_probabilities_with_lambda():
@@ -180,25 +160,19 @@ while input_string != "!q":
     # probability of each word in language
     p_wi_in_positive = {}
     for key in positive_hashmap:
-        p_wi_in_positive[key] = positive_hashmap[key] / len(new_positive_lines)
+        p_wi_in_positive[key] = positive_hashmap[key] / len(positive_lines)
 
     p_wi_in_negative = {}
     for key in negative_hashmap:
-        p_wi_in_negative[key] = negative_hashmap[key] / len(new_negative_lines)
-
-    positive_lines_word_by_word = str(positive_lines).split()
-    negative_lines_word_by_word = str(negative_lines).split()
-
-    # make it clean with stop words
-    # update_and_clean_lines()
+        p_wi_in_negative[key] = negative_hashmap[key] / len(negative_lines)
 
     # build bigram matrices and save bigram count of each word
     bigram_matrix_positive = {}
     bigram_matrix_negative = {}
 
     i = 0
-    while i < len(positive_lines_word_by_word) - 1:
-        key = str(positive_lines_word_by_word[i] + " " + positive_lines_word_by_word[i + 1])
+    while i < len(positive_lines) - 1:
+        key = str(positive_lines[i] + " " + positive_lines[i + 1])
         if key not in bigram_matrix_positive:
             bigram_matrix_positive[key] = 1
         else:
@@ -206,8 +180,8 @@ while input_string != "!q":
         i += 1
 
     i = 0
-    while i < len(negative_lines_word_by_word) - 1:
-        key = str(negative_lines_word_by_word[i] + " " + negative_lines_word_by_word[i + 1] + " ")
+    while i < len(negative_lines) - 1:
+        key = str(negative_lines[i] + " " + negative_lines[i + 1])
         if key not in bigram_matrix_negative:
             bigram_matrix_negative[key] = 1
         else:
@@ -224,8 +198,22 @@ while input_string != "!q":
                 (key.split()[1] not in deleted_words_negative):
             p_wi_and_next_word_in_negative[key] = bigram_matrix_negative[key] / negative_hashmap[key.split()[0]]
 
+    # j = 0
+    # for i in p_wi_and_next_word_in_positive:
+    #     j += 1
+    #     if j > 4:
+    #         break
+    #     print(i, p_wi_and_next_word_in_positive[i])
+
     # considering lambda
     calculate_probabilities_with_lambda()
+    # print("|||||")
+    # j = 0
+    # for i in p_wi_and_next_word_in_positive:
+    #     j += 1
+    #     if j > 4:
+    #         break
+    #     print(i, p_wi_and_next_word_in_positive[i])
 
     # main function
     list_input = input_string.split()
