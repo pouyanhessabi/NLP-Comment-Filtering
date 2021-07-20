@@ -220,36 +220,35 @@ while input_string != "!q":
     list_input.insert(0, "<$>")
     list_input.insert(len(list_input), "</$>")
 
+    """
+    clean input
+    """
     deleted_from_input_positive = []
     deleted_from_input_negative = []
     for i in list_input:
         if i not in positive_hashmap:
             deleted_from_input_positive.append(i)
-    # clean input
     for i in deleted_from_input_positive:
         if i in list_input:
             list_input.remove(i)
-
     for i in list_input:
         if i not in negative_hashmap:
             deleted_from_input_negative.append(i)
-    # clean input
     for i in deleted_from_input_negative:
         if i in list_input:
             list_input.remove(i)
-
-    print(list_input)
+    ""
+    ""
+    # print(list_input)
 
     p_multiplication_positive = p_wi_in_positive[list_input[0]]
     i = 1
     while i < len(list_input):
         two_word = str(list_input[i - 1] + " " + list_input[i])
         if two_word in p_wi_and_next_word_in_positive:
-            print("sa")
             p_multiplication_positive *= p_wi_and_next_word_in_positive[two_word]
         else:
             p_multiplication_positive *= (lambda2 * p_wi_in_positive[list_input[i]]) + (lambda3 * e)
-        print(two_word, p_multiplication_positive)
         i += 1
 
     i = 1
@@ -262,7 +261,11 @@ while input_string != "!q":
             p_multiplication_negative *= (lambda2 * p_wi_in_negative[list_input[i]]) + (lambda3 * e)
 
         i += 1
-    print("|||")
+
     print(p_multiplication_positive)
     print(p_multiplication_negative)
+    if p_multiplication_negative > p_multiplication_positive:
+        print("filter this")
+    else:
+        print("not filter this")
     input_string = input()
