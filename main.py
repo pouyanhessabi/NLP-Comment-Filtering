@@ -6,10 +6,10 @@ deleted_words_positive = {}
 deleted_words_negative = {}
 p_wi_and_next_word_in_positive = {}
 p_wi_and_next_word_in_negative = {}
-lambda1 = 0.7
-lambda2 = 0.15
-lambda3 = 0.15
-e = 0.1
+lambda1 = 0.1
+lambda2 = 0.6
+lambda3 = 0.3
+e = 0.001
 
 with open("rt-polarity.pos", "r") as file_positive:
     all_text_positive_file = file_positive.readlines()[0:5000]
@@ -150,73 +150,69 @@ def calculate_probabilities_with_lambda():
 
 clean_lines()
 
-input_string = input()
-while input_string != "!q":
-    create_both_hashmap()
-    clean_both_hashmap()
-    # clean the lines that have stop words or repeat lower than 2
-    clean_lines_after_hashmap()
+create_both_hashmap()
 
-    # probability of each word in language
-    p_wi_in_positive = {}
-    for key in positive_hashmap:
-        p_wi_in_positive[key] = positive_hashmap[key] / len(positive_lines)
+clean_both_hashmap()
+# clean the lines that have stop words or repeat lower than 2
+clean_lines_after_hashmap()
 
-    p_wi_in_negative = {}
-    for key in negative_hashmap:
-        p_wi_in_negative[key] = negative_hashmap[key] / len(negative_lines)
+# probability of each word in language
+p_wi_in_positive = {}
+for key in positive_hashmap:
+    p_wi_in_positive[key] = positive_hashmap[key] / len(positive_lines)
 
-    # build bigram matrices and save bigram count of each word
-    bigram_matrix_positive = {}
-    bigram_matrix_negative = {}
+p_wi_in_negative = {}
+for key in negative_hashmap:
+    p_wi_in_negative[key] = negative_hashmap[key] / len(negative_lines)
 
-    i = 0
-    while i < len(positive_lines) - 1:
-        key = str(positive_lines[i] + " " + positive_lines[i + 1])
-        if key not in bigram_matrix_positive:
-            bigram_matrix_positive[key] = 1
-        else:
-            bigram_matrix_positive[key] += 1
-        i += 1
+# build bigram matrices and save bigram count of each word
+bigram_matrix_positive = {}
+bigram_matrix_negative = {}
 
-    i = 0
-    while i < len(negative_lines) - 1:
-        key = str(negative_lines[i] + " " + negative_lines[i + 1])
-        if key not in bigram_matrix_negative:
-            bigram_matrix_negative[key] = 1
-        else:
-            bigram_matrix_negative[key] += 1
-        i += 1
+i = 0
+while i < len(positive_lines) - 1:
+    key = str(positive_lines[i] + " " + positive_lines[i + 1])
+    if key not in bigram_matrix_positive:
+        bigram_matrix_positive[key] = 1
+    else:
+        bigram_matrix_positive[key] += 1
+    i += 1
 
-    # calculate probability of p(wi|w<i-1>)
-    for key in bigram_matrix_positive:
-        if (key.split()[0] in positive_hashmap) and (key.split()[0] not in deleted_words_positive) and \
-                (key.split()[1] not in deleted_words_positive):
-            p_wi_and_next_word_in_positive[key] = bigram_matrix_positive[key] / positive_hashmap[key.split()[0]]
-    for key in bigram_matrix_negative:
-        if (key.split()[0] in negative_hashmap) and (key.split()[0] not in deleted_words_negative) and \
-                (key.split()[1] not in deleted_words_negative):
-            p_wi_and_next_word_in_negative[key] = bigram_matrix_negative[key] / negative_hashmap[key.split()[0]]
+i = 0
+while i < len(negative_lines) - 1:
+    key = str(negative_lines[i] + " " + negative_lines[i + 1])
+    if key not in bigram_matrix_negative:
+        bigram_matrix_negative[key] = 1
+    else:
+        bigram_matrix_negative[key] += 1
+    i += 1
 
-    # j = 0
-    # for i in p_wi_and_next_word_in_positive:
-    #     j += 1
-    #     if j > 4:
-    #         break
-    #     print(i, p_wi_and_next_word_in_positive[i])
+# calculate probability of p(wi|w<i-1>)
+for key in bigram_matrix_positive:
+    if (key.split()[0] in positive_hashmap) and (key.split()[0] not in deleted_words_positive) and \
+            (key.split()[1] not in deleted_words_positive):
+        p_wi_and_next_word_in_positive[key] = bigram_matrix_positive[key] / positive_hashmap[key.split()[0]]
+for key in bigram_matrix_negative:
+    if (key.split()[0] in negative_hashmap) and (key.split()[0] not in deleted_words_negative) and \
+            (key.split()[1] not in deleted_words_negative):
+        p_wi_and_next_word_in_negative[key] = bigram_matrix_negative[key] / negative_hashmap[key.split()[0]]
 
-    # considering lambda
-    calculate_probabilities_with_lambda()
-    # print("|||||")
-    # j = 0
-    # for i in p_wi_and_next_word_in_positive:
-    #     j += 1
-    #     if j > 4:
-    #         break
-    #     print(i, p_wi_and_next_word_in_positive[i])
+calculate_probabilities_with_lambda()
 
-    # main function
-    list_input = input_string.split()
+# main function
+"""
+inputs
+"""
+number_of_line_to_test = 300
+with open("rt-polarity.pos", "r") as file_positive:
+    positive_sentence_data_set = file_positive.readlines()[5000:5000 + number_of_line_to_test].copy()
+with open("rt-polarity.neg", "r") as file_negative:
+    negative_sentence_data_set = file_negative.readlines()[5000:5000 + number_of_line_to_test].copy()
+positive_accuracy = 0
+negative_accuracy = 0
+iterator = 0
+while iterator < len(positive_sentence_data_set):
+    list_input = positive_sentence_data_set[iterator].split()
     list_input.insert(0, "<$>")
     list_input.insert(len(list_input), "</$>")
 
@@ -262,10 +258,82 @@ while input_string != "!q":
 
         i += 1
 
-    print(p_multiplication_positive)
-    print(p_multiplication_negative)
-    if p_multiplication_negative > p_multiplication_positive:
-        print("filter this")
+    if p_multiplication_positive > p_multiplication_negative:
+        # print("not filter this")
+        positive_accuracy += 1
+    # else:
+    # print("filter this")
+    # input_string = input()
+
+    iterator += 1
+
+iterator = 0
+while iterator < len(negative_sentence_data_set):
+    list_input = negative_sentence_data_set[iterator].split()
+    list_input.insert(0, "<$>")
+    list_input.insert(len(list_input), "</$>")
+
+    """
+    clean input
+    """
+    deleted_from_input_positive = []
+    deleted_from_input_negative = []
+    for i in list_input:
+        if i not in positive_hashmap:
+            deleted_from_input_positive.append(i)
+    for i in deleted_from_input_positive:
+        if i in list_input:
+            list_input.remove(i)
+    for i in list_input:
+        if i not in negative_hashmap:
+            deleted_from_input_negative.append(i)
+    for i in deleted_from_input_negative:
+        if i in list_input:
+            list_input.remove(i)
+    ""
+    ""
+    # print(list_input)
+
+    p_multiplication_positive = p_wi_in_positive[list_input[0]]
+    i = 1
+    while i < len(list_input):
+        two_word = str(list_input[i - 1] + " " + list_input[i])
+        if two_word in p_wi_and_next_word_in_positive:
+            p_multiplication_positive *= p_wi_and_next_word_in_positive[two_word]
+        else:
+            p_multiplication_positive *= (lambda2 * p_wi_in_positive[list_input[i]]) + (lambda3 * e)
+        i += 1
+
+    i = 1
+    p_multiplication_negative = p_wi_in_negative[list_input[0]]
+    while i < len(list_input):
+        two_word = str(list_input[i - 1] + " " + list_input[i])
+        if two_word in p_wi_and_next_word_in_negative:
+            p_multiplication_negative *= p_wi_and_next_word_in_negative[two_word]
+        else:
+            p_multiplication_negative *= (lambda2 * p_wi_in_negative[list_input[i]]) + (lambda3 * e)
+
+        i += 1
+
+    if p_multiplication_positive > p_multiplication_negative:
+        # print("not filter this")
+        pass
     else:
-        print("not filter this")
-    input_string = input()
+        negative_accuracy += 1
+    # print("filter this")
+    # input_string = input()
+
+    iterator += 1
+
+positive_accuracy = "%.2f" % (positive_accuracy / number_of_line_to_test)
+negative_accuracy = "%.2f" % (negative_accuracy / number_of_line_to_test)
+print(positive_accuracy)
+print(negative_accuracy)
+
+output_string = "\t\t[λ1: " + str(lambda1) + " ,λ2: " + str(lambda2) + " ,λ3: " + str(lambda3) + " ,e: " + str(
+    e) + "] -> " + "Positive accuracy: " + str(positive_accuracy) + " ,Negative accuracy: " + str(
+    negative_accuracy) + "\n"
+
+print(output_string)
+with open("result.txt", "a+") as result:
+    result.write(output_string)
